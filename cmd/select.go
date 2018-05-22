@@ -73,7 +73,7 @@ func newSelectCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptProject, "project", "p", "", "datastore project id [required]")
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
-	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "show count only")
+	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "count only")
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
