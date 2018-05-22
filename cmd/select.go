@@ -11,9 +11,10 @@ import (
 
 func newSelectCmd() *cobra.Command {
 	type Options struct {
-		OptProject   string `validate:"required"`
-		OptKind      string `validate:"required"`
+		OptProject   string
+		OptKind      string
 		OptNamespace string
+		OptCount     bool
 	}
 
 	var (
@@ -35,31 +36,34 @@ func newSelectCmd() *cobra.Command {
 			if o.OptNamespace != "" {
 				query = query.Namespace(o.OptNamespace)
 			}
+			if o.OptCount {
+				query = query.KeysOnly()
+			}
 
-			var entitys []Entity
+			var entities []Entity
 
-			keys, err := client.GetAll(ctx, query, &entitys)
+			keys, err := client.GetAll(ctx, query, &entities)
 			if err != nil {
 				log.Fatalf("Could not Get Keys: %v", err)
 				return err
 			}
 
-			for i, key := range keys {
-				entity := entitys[i]
-				entity.Props["__key__"] = key
+			if !o.OptCount {
+				for i, key := range keys {
+					entity := entities[i]
+					entity.Props["__key__"] = key
 
-				j, _ := json.Marshal(entity.Props)
-				var ij bytes.Buffer
-				json.Indent(&ij, j, "", "  ")
-				js := ij.String()
-				if len(keys) > i+1 {
-					js += ","
+					j, _ := json.Marshal(entity.Props)
+					var ij bytes.Buffer
+					json.Indent(&ij, j, "", "  ")
+					js := ij.String()
+					if len(keys) > i+1 {
+						js += ","
+					}
+					cmd.Printf("%s\n", js)
 				}
-				cmd.Printf("%s\n", js)
 			}
-			cmd.Print("-----------------\n")
 			cmd.Printf("count: %d \n", len(keys))
-			cmd.Print("-----------------\n")
 
 			return nil
 		},
@@ -69,6 +73,7 @@ func newSelectCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptProject, "project", "p", "", "datastore project id [required]")
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
+	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "show count only")
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
