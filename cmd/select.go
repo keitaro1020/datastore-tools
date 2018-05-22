@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/spf13/cobra"
+	"google.golang.org/api/option"
 )
 
 func newSelectCmd() *cobra.Command {
@@ -13,6 +14,7 @@ func newSelectCmd() *cobra.Command {
 		OptProject   string
 		OptKind      string
 		OptNamespace string
+		OptKeyFile   string
 		OptCount     bool
 	}
 
@@ -25,7 +27,11 @@ func newSelectCmd() *cobra.Command {
 		Short: "Select Entity",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
-			client, err := datastore.NewClient(ctx, o.OptProject)
+			opts := []option.ClientOption{
+				option.WithCredentialsFile(o.OptKeyFile),
+			}
+
+			client, err := datastore.NewClient(ctx, o.OptProject, opts...)
 			if err != nil {
 				return err
 			}
@@ -70,42 +76,16 @@ func newSelectCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptProject, "project", "p", "", "datastore project id [required]")
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
+	cmd.Flags().StringVarP(&o.OptKeyFile, "key-file", "f", "", "gcp service account JSON key file")
 	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "count only")
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
+	cmd.MarkFlagRequired("key-file")
 
 	return cmd
 }
 
 func init() {
 	RootCmd.AddCommand(newSelectCmd())
-}
-
-type Entity struct {
-	Props map[string]interface{}
-}
-
-func (e *Entity) Load(ps []datastore.Property) error {
-	err := datastore.LoadStruct(e, ps)
-
-	if fmerr, ok := err.(*datastore.ErrFieldMismatch); ok && fmerr != nil && fmerr.Reason == "no such struct field" {
-	} else if err != nil {
-		return err
-	}
-
-	e.Props = map[string]interface{}{}
-	for _, p := range ps {
-		e.Props[p.Name] = p.Value
-	}
-
-	return nil
-}
-
-func (e *Entity) Save() ([]datastore.Property, error) {
-	pr, err := datastore.SaveStruct(e)
-	if err != nil {
-		return nil, err
-	}
-	return pr, nil
 }

@@ -10,6 +10,7 @@ func newTruncateCmd() *cobra.Command {
 	type Options struct {
 		OptProject   string
 		OptKind      string
+		OptKeyFile   string
 		OptNamespace string
 	}
 
@@ -59,9 +60,11 @@ func newTruncateCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptProject, "project", "p", "", "datastore project id [required]")
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
+	cmd.Flags().StringVarP(&o.OptKeyFile, "key-file", "f", "", "gcp service account JSON key file")
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
+	cmd.MarkFlagRequired("key-file")
 
 	return cmd
 }

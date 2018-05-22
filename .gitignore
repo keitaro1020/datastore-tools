@@ -4,3 +4,4 @@ out/*
 pkg/*
 
 /.idea/
+/*.json
