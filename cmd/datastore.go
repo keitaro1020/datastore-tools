@@ -1,6 +1,10 @@
 package cmd
 
-import "cloud.google.com/go/datastore"
+import (
+	"cloud.google.com/go/datastore"
+	"google.golang.org/api/option"
+	"context"
+)
 
 type Entity struct {
 	Props map[string]interface{}
@@ -28,4 +32,12 @@ func (e *Entity) Save() ([]datastore.Property, error) {
 		return nil, err
 	}
 	return pr, nil
+}
+
+func NewDatastoreClient(c context.Context, keyfile, project string) (*datastore.Client, error) {
+	opts := []option.ClientOption{
+		option.WithCredentialsFile(keyfile),
+	}
+
+	return datastore.NewClient(c, project, opts...)
 }

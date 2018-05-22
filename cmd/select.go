@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/spf13/cobra"
-	"google.golang.org/api/option"
 )
 
 func newSelectCmd() *cobra.Command {
@@ -27,11 +26,8 @@ func newSelectCmd() *cobra.Command {
 		Short: "Select Entity",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
-			opts := []option.ClientOption{
-				option.WithCredentialsFile(o.OptKeyFile),
-			}
 
-			client, err := datastore.NewClient(ctx, o.OptProject, opts...)
+			client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
 			if err != nil {
 				return err
 			}

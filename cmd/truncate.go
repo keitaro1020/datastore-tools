@@ -23,7 +23,8 @@ func newTruncateCmd() *cobra.Command {
 		Short: "Truncate Entity",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
-			client, err := datastore.NewClient(ctx, o.OptProject)
+
+			client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
 			if err != nil {
 				return err
 			}
