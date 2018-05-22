@@ -23,12 +23,12 @@ func newSelectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "select",
 		Short: "Select Entity",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			client, err := datastore.NewClient(ctx, o.OptProject)
 			if err != nil {
 				log.Fatalf("Could not create datastore client: %v", err)
-				return
+				return err
 			}
 
 			query := datastore.NewQuery(o.OptKind)
@@ -41,7 +41,7 @@ func newSelectCmd() *cobra.Command {
 			keys, err := client.GetAll(ctx, query, &entitys)
 			if err != nil {
 				log.Fatalf("Could not Get Keys: %v", err)
-				return
+				return err
 			}
 
 			for i, key := range keys {
@@ -60,6 +60,8 @@ func newSelectCmd() *cobra.Command {
 			cmd.Print("-----------------\n")
 			cmd.Printf("count: %d \n", len(keys))
 			cmd.Print("-----------------\n")
+
+			return nil
 		},
 		SilenceErrors: true,
 		SilenceUsage:  true,
