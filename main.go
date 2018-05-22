@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/keitaro1020/datastore-tool/cmd"
 	"fmt"
+	"github.com/keitaro1020/datastore-tool/cmd"
 	"os"
 )
 
