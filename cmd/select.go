@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 func newSelectCmd() *cobra.Command {
@@ -28,7 +27,6 @@ func newSelectCmd() *cobra.Command {
 			ctx := context.Background()
 			client, err := datastore.NewClient(ctx, o.OptProject)
 			if err != nil {
-				log.Fatalf("Could not create datastore client: %v", err)
 				return err
 			}
 
@@ -44,7 +42,6 @@ func newSelectCmd() *cobra.Command {
 
 			keys, err := client.GetAll(ctx, query, &entities)
 			if err != nil {
-				log.Fatalf("Could not Get Keys: %v", err)
 				return err
 			}
 
