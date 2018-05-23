@@ -52,52 +52,9 @@ func newSelectCmd() *cobra.Command {
 
 			if !o.OptCount {
 				if o.OptTable {
-					if len(keys) > 0 {
-						headers := []string{"__key__"}
-						for propKey := range entities[0].Props {
-							headers = append(headers, propKey)
-						}
-						table := tablewriter.NewWriter(cmd.OutOrStdout())
-						table.SetHeader(headers)
-						table.SetRowLine(true)
-
-						for i, key := range keys {
-							entity := entities[i]
-							entity.Props["__key__"] = key
-
-							var row []string
-							for _, header := range headers {
-								if v, ok := entity.Props[header]; ok {
-									switch tv := v.(type) {
-									case *datastore.Key:
-										if tv.ID != 0 {
-											row = append(row, fmt.Sprintf("%v", tv.ID))
-										} else {
-											row = append(row, tv.Name)
-										}
-									default:
-										row = append(row, fmt.Sprintf("%v", tv))
-									}
-								}
-							}
-							table.Append(row)
-						}
-						table.Render()
-					}
+					outputTable(cmd, keys, entities)
 				} else {
-					for i, key := range keys {
-						entity := entities[i]
-						entity.Props["__key__"] = key
-
-						j, _ := json.Marshal(entity.Props)
-						var ij bytes.Buffer
-						json.Indent(&ij, j, "", "  ")
-						js := ij.String()
-						if len(keys) > i+1 {
-							js += ","
-						}
-						cmd.Printf("%s\n", js)
-					}
+					outputJson(cmd, keys, entities)
 				}
 			}
 			cmd.Printf("count: %d \n", len(keys))
@@ -123,4 +80,55 @@ func newSelectCmd() *cobra.Command {
 
 func init() {
 	RootCmd.AddCommand(newSelectCmd())
+}
+
+func outputTable(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
+	if len(keys) > 0 {
+		headers := []string{"__key__"}
+		for propKey := range entities[0].Props {
+			headers = append(headers, propKey)
+		}
+		table := tablewriter.NewWriter(cmd.OutOrStdout())
+		table.SetHeader(headers)
+		table.SetRowLine(true)
+
+		for i, key := range keys {
+			entity := entities[i]
+			entity.Props["__key__"] = key
+
+			var row []string
+			for _, header := range headers {
+				if v, ok := entity.Props[header]; ok {
+					switch tv := v.(type) {
+					case *datastore.Key:
+						if tv.ID != 0 {
+							row = append(row, fmt.Sprintf("%v", tv.ID))
+						} else {
+							row = append(row, tv.Name)
+						}
+					default:
+						row = append(row, fmt.Sprintf("%v", tv))
+					}
+				}
+			}
+			table.Append(row)
+		}
+		table.Render()
+	}
+}
+
+func outputJson(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
+	for i, key := range keys {
+		entity := entities[i]
+		entity.Props["__key__"] = key
+
+		j, _ := json.Marshal(entity.Props)
+		var ij bytes.Buffer
+		json.Indent(&ij, j, "", "  ")
+		js := ij.String()
+		if len(keys) > i+1 {
+			js += ","
+		}
+		cmd.Printf("%s\n", js)
+	}
 }
