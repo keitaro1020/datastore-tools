@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"io"
 )
 
 func newSelectCmd() *cobra.Command {
@@ -52,9 +53,9 @@ func newSelectCmd() *cobra.Command {
 
 			if !o.OptCount {
 				if o.OptTable {
-					outputTable(cmd, keys, entities)
+					outputTable(cmd.OutOrStdout(), keys, entities)
 				} else {
-					outputJson(cmd, keys, entities)
+					outputJson(cmd.OutOrStdout(), keys, entities)
 				}
 			}
 			cmd.Printf("count: %d \n", len(keys))
@@ -82,13 +83,13 @@ func init() {
 	RootCmd.AddCommand(newSelectCmd())
 }
 
-func outputTable(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
+func outputTable(w io.Writer, keys []*datastore.Key, entities []Entity) {
 	if len(keys) > 0 {
 		headers := []string{"__key__"}
 		for propKey := range entities[0].Props {
 			headers = append(headers, propKey)
 		}
-		table := tablewriter.NewWriter(cmd.OutOrStdout())
+		table := tablewriter.NewWriter(w)
 		table.SetHeader(headers)
 		table.SetRowLine(true)
 
@@ -117,7 +118,7 @@ func outputTable(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
 	}
 }
 
-func outputJson(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
+func outputJson(w io.Writer, keys []*datastore.Key, entities []Entity) {
 	for i, key := range keys {
 		entity := entities[i]
 		entity.Props["__key__"] = key
@@ -129,6 +130,6 @@ func outputJson(cmd *cobra.Command, keys []*datastore.Key, entities []Entity) {
 		if len(keys) > i+1 {
 			js += ","
 		}
-		cmd.Printf("%s\n", js)
+		fmt.Fprintf(w, "%s\n", js)
 	}
 }
