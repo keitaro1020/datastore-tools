@@ -1,7 +1,7 @@
-NAME            := datastore-tool
+NAME            := datastore-tools
 VERSION         := v0.0.1
 REVISION        := $(shell git rev-parse --short HEAD)
-LDFLAGS         := "-X github.com/keitaro1020/datastore-tool/cmd.Version=${VERSION} -X github.com/keitaro1020/datastore-tool/cmd.Revision=${REVISION}"
+LDFLAGS         := "-X github.com/keitaro1020/datastore-tools/cmd.Version=${VERSION} -X github.com/keitaro1020/datastore-tools/cmd.Revision=${REVISION}"
 OSARCH          := "darwin/amd64 linux/amd64"
 GITHUB_USER     := keitaro1020
 

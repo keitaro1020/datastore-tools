@@ -8,8 +8,8 @@ import (
 var cfgFile string
 
 var RootCmd = &cobra.Command{
-	Use:           "datastore-tool",
-	Short:         "Cloud Datastore Tool CLI",
+	Use:           "datastore-tools",
+	Short:         "CLI for Google Cloud Datastore",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
@@ -17,7 +17,7 @@ var RootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default $HOME/.datastore-tool.yml)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default $HOME/.datastore-tools.yml)")
 
 	viper.BindPFlag("url", RootCmd.PersistentFlags().Lookup("url"))
 }
@@ -27,7 +27,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	}
 
-	viper.SetConfigName(".datastore-tool")
+	viper.SetConfigName(".datastore-tools")
 	viper.AddConfigPath("$HOME")
 	viper.AutomaticEnv()
 
