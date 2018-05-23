@@ -5,9 +5,9 @@ import (
 	"cloud.google.com/go/datastore"
 	"context"
 	"encoding/json"
-	"github.com/spf13/cobra"
-	"github.com/olekukonko/tablewriter"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra"
 )
 
 func newSelectCmd() *cobra.Command {

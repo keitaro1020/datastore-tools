@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/option"
 	"context"
+	"google.golang.org/api/option"
 )
 
 type Entity struct {
