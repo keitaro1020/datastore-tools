@@ -9,6 +9,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"io"
+	"strings"
 )
 
 func newSelectCmd() *cobra.Command {
@@ -17,6 +18,7 @@ func newSelectCmd() *cobra.Command {
 		OptKind      string
 		OptNamespace string
 		OptKeyFile   string
+		OptWhere     string
 		OptCount     bool
 		OptTable     bool
 	}
@@ -39,6 +41,25 @@ func newSelectCmd() *cobra.Command {
 			query := datastore.NewQuery(o.OptKind)
 			if o.OptNamespace != "" {
 				query = query.Namespace(o.OptNamespace)
+			}
+			if o.OptWhere != "" {
+				where := strings.SplitN(o.OptWhere, "=", 2)
+				if len(where) == 2 {
+					if where[0] == "__key__" {
+						key := datastore.Key{
+							Kind: o.OptKind,
+							Name: where[1],
+						}
+						if o.OptNamespace != "" {
+							key.Namespace = o.OptNamespace
+						}
+						query = query.Filter(fmt.Sprintf("%s =", where[0]), &key)
+					} else {
+						query = query.Filter(fmt.Sprintf("%s =", where[0]), where[1])
+					}
+				} else {
+					return fmt.Errorf("error: invalid where parameter: %s", o.OptWhere)
+				}
 			}
 			if o.OptCount {
 				query = query.KeysOnly()
@@ -69,6 +90,7 @@ func newSelectCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
 	cmd.Flags().StringVarP(&o.OptKeyFile, "key-file", "f", "", "gcp service account JSON key file")
+	cmd.Flags().StringVarP(&o.OptWhere, "where", "w", "", "query (Property=Value)")
 	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "count only")
 	cmd.Flags().BoolVarP(&o.OptTable, "table", "t", false, "output table view")
 
@@ -120,7 +142,24 @@ func outputTable(w io.Writer, keys []*datastore.Key, entities []Entity) {
 func outputJson(w io.Writer, keys []*datastore.Key, entities []Entity) {
 	for i, key := range keys {
 		entity := entities[i]
-		entity.Props["__key__"] = key
+		entity.Props["__key__"] = &JsonKey{
+			Kind:      key.Kind,
+			ID:        key.ID,
+			Name:      key.Name,
+			Namespace: key.Namespace,
+		}
+
+		for k, v := range entity.Props {
+			switch vc := v.(type) {
+			case *datastore.Key:
+				entity.Props[k] = &JsonKey{
+					Kind:      vc.Kind,
+					ID:        vc.ID,
+					Name:      vc.Name,
+					Namespace: vc.Namespace,
+				}
+			}
+		}
 
 		j, _ := json.Marshal(entity.Props)
 		var ij bytes.Buffer

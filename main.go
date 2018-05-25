@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/keitaro1020/datastore-tool/cmd"
+	"github.com/keitaro1020/datastore-tools/cmd"
 	"os"
 )
 

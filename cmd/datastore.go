@@ -10,6 +10,13 @@ type Entity struct {
 	Props map[string]interface{}
 }
 
+type JsonKey struct {
+	Kind      string
+	ID        int64
+	Name      string
+	Namespace string
+}
+
 func (e *Entity) Load(ps []datastore.Property) error {
 	err := datastore.LoadStruct(e, ps)
 

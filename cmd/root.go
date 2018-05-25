@@ -11,7 +11,7 @@ var RootCmd = &cobra.Command{
 	Use:           "datastore-tools",
 	Short:         "CLI for Google Cloud Datastore",
 	SilenceErrors: true,
-	SilenceUsage:  true,
+	SilenceUsage:  false,
 }
 
 func init() {
