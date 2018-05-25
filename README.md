@@ -3,7 +3,8 @@ CLI for Google Cloud Datastore
 
 ## Before you begin
 
-- Create a [service account](https://cloud.google.com/docs/authentication/getting-started#creating_a_service_account).
+1. Create a [service account](https://cloud.google.com/docs/authentication/getting-started#creating_a_service_account).(roles: datastore.user)
+2. Save JSON key file
 
 ## Installing the tools
 
