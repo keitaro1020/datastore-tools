@@ -35,8 +35,11 @@ func (e *Entity) Save() ([]datastore.Property, error) {
 }
 
 func NewDatastoreClient(c context.Context, keyfile, project string) (*datastore.Client, error) {
-	opts := []option.ClientOption{
-		option.WithCredentialsFile(keyfile),
+	var opts []option.ClientOption
+	if keyfile != "" {
+		opts = []option.ClientOption{
+			option.WithCredentialsFile(keyfile),
+		}
 	}
 
 	return datastore.NewClient(c, project, opts...)

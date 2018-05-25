@@ -56,7 +56,7 @@ func newTruncateCmd() *cobra.Command {
 			return nil
 		},
 		SilenceErrors: true,
-		SilenceUsage:  true,
+		SilenceUsage:  false,
 	}
 	cmd.Flags().StringVarP(&o.OptProject, "project", "p", "", "datastore project id [required]")
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
@@ -65,7 +65,6 @@ func newTruncateCmd() *cobra.Command {
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
-	cmd.MarkFlagRequired("key-file")
 
 	return cmd
 }
