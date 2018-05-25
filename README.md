@@ -1,6 +1,10 @@
 # datastore-tool
 CLI for Google Cloud Datastore
 
+## Before you begin
+
+- Create a [service account](https://cloud.google.com/docs/authentication/getting-started#creating_a_service_account).
+
 ## Installing the tools
 
 `go get github.com/keitaro1020/datastore-tools`
