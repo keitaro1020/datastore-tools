@@ -1,4 +1,4 @@
-# datastore-tool
+# Google Cloud Datastore Tools
 CLI for Google Cloud Datastore
 
 ## Before you begin
