@@ -17,7 +17,7 @@ type JsonKey struct {
 	Namespace string
 }
 
-func NewJsonKey(key *datastore.Key) *JsonKey{
+func NewJsonKey(key *datastore.Key) *JsonKey {
 	return &JsonKey{
 		Kind:      key.Kind,
 		ID:        key.ID,
