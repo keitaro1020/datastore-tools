@@ -142,22 +142,12 @@ func outputTable(w io.Writer, keys []*datastore.Key, entities []Entity) {
 func outputJson(w io.Writer, keys []*datastore.Key, entities []Entity) {
 	for i, key := range keys {
 		entity := entities[i]
-		entity.Props["__key__"] = &JsonKey{
-			Kind:      key.Kind,
-			ID:        key.ID,
-			Name:      key.Name,
-			Namespace: key.Namespace,
-		}
+		entity.Props["__key__"] = NewJsonKey(key)
 
 		for k, v := range entity.Props {
 			switch vc := v.(type) {
 			case *datastore.Key:
-				entity.Props[k] = &JsonKey{
-					Kind:      vc.Kind,
-					ID:        vc.ID,
-					Name:      vc.Name,
-					Namespace: vc.Namespace,
-				}
+				entity.Props[k] = NewJsonKey(vc)
 			}
 		}
 

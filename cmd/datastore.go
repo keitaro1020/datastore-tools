@@ -17,6 +17,15 @@ type JsonKey struct {
 	Namespace string
 }
 
+func NewJsonKey(key *datastore.Key) *JsonKey{
+	return &JsonKey{
+		Kind:      key.Kind,
+		ID:        key.ID,
+		Name:      key.Name,
+		Namespace: key.Namespace,
+	}
+}
+
 func (e *Entity) Load(ps []datastore.Property) error {
 	err := datastore.LoadStruct(e, ps)
 
