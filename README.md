@@ -1,7 +1,11 @@
 # datastore-tool
 CLI for Google Cloud Datastore
 
-### Using the tools
+## Installing the tools
+
+`go get github.com/keitaro1020/datastore-tools`
+
+## Using the tools
 
 - select 
 ```
