@@ -18,7 +18,7 @@ func newSelectCmd() *cobra.Command {
 		OptKind      string
 		OptNamespace string
 		OptKeyFile   string
-		OptWhere     string
+		OptFilter    string
 		OptCount     bool
 		OptTable     bool
 	}
@@ -42,23 +42,23 @@ func newSelectCmd() *cobra.Command {
 			if o.OptNamespace != "" {
 				query = query.Namespace(o.OptNamespace)
 			}
-			if o.OptWhere != "" {
-				where := strings.SplitN(o.OptWhere, "=", 2)
-				if len(where) == 2 {
-					if where[0] == "__key__" {
+			if o.OptFilter != "" {
+				filter := strings.SplitN(o.OptFilter, "=", 2)
+				if len(filter) == 2 {
+					if filter[0] == "__key__" {
 						key := datastore.Key{
 							Kind: o.OptKind,
-							Name: where[1],
+							Name: filter[1],
 						}
 						if o.OptNamespace != "" {
 							key.Namespace = o.OptNamespace
 						}
-						query = query.Filter(fmt.Sprintf("%s =", where[0]), &key)
+						query = query.Filter(fmt.Sprintf("%s =", filter[0]), &key)
 					} else {
-						query = query.Filter(fmt.Sprintf("%s =", where[0]), where[1])
+						query = query.Filter(fmt.Sprintf("%s =", filter[0]), filter[1])
 					}
 				} else {
-					return fmt.Errorf("error: invalid where parameter: %s", o.OptWhere)
+					return fmt.Errorf("error: invalid filter parameter: %s", o.OptFilter)
 				}
 			}
 			if o.OptCount {
@@ -90,7 +90,7 @@ func newSelectCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
 	cmd.Flags().StringVarP(&o.OptKeyFile, "key-file", "f", "", "gcp service account JSON key file")
-	cmd.Flags().StringVarP(&o.OptWhere, "where", "w", "", "query (Property=Value)")
+	cmd.Flags().StringVarP(&o.OptFilter, "filter", "w", "", "filter query (Property=Value)")
 	cmd.Flags().BoolVarP(&o.OptCount, "count", "c", false, "count only")
 	cmd.Flags().BoolVarP(&o.OptTable, "table", "t", false, "output table view")
 
