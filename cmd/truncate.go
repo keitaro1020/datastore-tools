@@ -67,23 +67,23 @@ func truncateFunction(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func slice(slice []*datastore.Key, cnt int) [][]*datastore.Key {
-	if len(slice) <= cnt {
+func slice(slice []*datastore.Key, size int) [][]*datastore.Key {
+	if len(slice) <= size {
 		return [][]*datastore.Key{slice}
 	}
 
-	size := len(slice) / cnt
-	if len(slice)%cnt > 0 {
-		size += 1
+	resSize := len(slice) / size
+	if len(slice)%size > 0 {
+		resSize += 1
 	}
 
-	res := make([][]*datastore.Key, size)
+	res := make([][]*datastore.Key, resSize)
 
 	for i := range res {
-		if len(slice) > cnt {
-			rt := make([]*datastore.Key, cnt)
-			copy(rt, slice[0:cnt])
-			slice = append(slice[:0], slice[cnt:]...)
+		if len(slice) > size {
+			rt := make([]*datastore.Key, size)
+			copy(rt, slice[0:size])
+			slice = append(slice[:0], slice[size:]...)
 			res[i] = rt
 		} else {
 			res[i] = slice
