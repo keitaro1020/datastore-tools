@@ -9,7 +9,8 @@ import (
 )
 
 type Entity struct {
-	Props map[string]interface{}
+	Props      map[string]interface{}
+	Properties []datastore.Property
 }
 
 type JsonKey struct {
@@ -36,6 +37,7 @@ func (e *Entity) Load(ps []datastore.Property) error {
 		return err
 	}
 
+	e.Properties = ps
 	e.Props = map[string]interface{}{}
 	for _, p := range ps {
 		e.Props[p.Name] = p.Value
