@@ -11,6 +11,7 @@ type Options struct {
 	OptNamespace string
 	OptKeyFile   string
 	OptFilter    string
+	OptSet       string
 	OptCount     bool
 	OptTable     bool
 }

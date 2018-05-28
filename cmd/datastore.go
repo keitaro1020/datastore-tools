@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"google.golang.org/api/option"
 	"strings"
+	"reflect"
+	"strconv"
 )
 
 type Entity struct {
@@ -47,11 +49,43 @@ func (e *Entity) Load(ps []datastore.Property) error {
 }
 
 func (e *Entity) Save() ([]datastore.Property, error) {
-	pr, err := datastore.SaveStruct(e)
-	if err != nil {
-		return nil, err
+	return e.Properties, nil
+}
+
+func (e *Entity) SetValue(name, value string) error {
+	res := false
+	for i, prop := range e.Properties {
+		if prop.Name == name {
+			var setVal interface{}
+			switch prop.Value.(type) {
+			case string:
+				setVal = value
+			case int, int8, int16, int32, int64:
+				v, _ := strconv.Atoi(value)
+				setVal = v
+			case float32:
+				v, _ := strconv.ParseFloat(value, 32)
+				setVal = v
+			case float64:
+				v, _ := strconv.ParseFloat(value, 64)
+				setVal = v
+			default:
+				return fmt.Errorf("unsupported property type: %#v", reflect.ValueOf(prop.Value))
+			}
+
+			e.Properties[i] = datastore.Property{
+				Name: prop.Name,
+				Value: setVal,
+				NoIndex: prop.NoIndex,
+			}
+			res = true
+		}
 	}
-	return pr, nil
+	if res {
+		return nil
+	} else {
+		return fmt.Errorf("unknown property name: %s", name)
+	}
 }
 
 type DatastoreClient struct {
@@ -107,4 +141,8 @@ func (c *DatastoreClient) GetQuery(kind, namespace, filter string, keysOnly bool
 
 func (c *DatastoreClient) GetAll(ctx context.Context, query *datastore.Query, entities *[]Entity) ([]*datastore.Key, error) {
 	return c.Client.GetAll(ctx, query, entities)
+}
+
+func (c *DatastoreClient) PutMulti(ctx context.Context, keys []*datastore.Key, entities []Entity) ([]*datastore.Key, error) {
+	return c.Client.PutMulti(ctx, keys, entities)
 }

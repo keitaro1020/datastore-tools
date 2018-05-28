@@ -38,3 +38,17 @@ Flags:
   -n, --namespace string   datastore namespace
   -f, --key-file string    gcp service account JSON key file
 ```
+
+- update
+```
+Usage:
+  datastore-tools update [flags]
+
+Flags:
+  -p, --project string     datastore project id [required]
+  -k, --kind string        datastore kind [required]
+  -n, --namespace string   datastore namespace
+  -f, --key-file string    gcp service account JSON key file
+  -w, --filter string      filter query (Property=Value)
+  -s, --set string         set update value (Property=Value)
+```
