@@ -50,11 +50,9 @@ func truncateFunction(cmd *cobra.Command, args []string) error {
 	}
 
 	count := len(keys)
-
-	kss := slice(keys, 500)
 	wg := &sync.WaitGroup{}
 
-	for _, ks := range kss {
+	for _, ks := range slice(keys, 500) {
 		wg.Add(1)
 		go func(keys []*datastore.Key) {
 			defer wg.Done()
