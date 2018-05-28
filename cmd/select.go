@@ -9,80 +9,13 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"io"
-	"strings"
 )
 
 func newSelectCmd() *cobra.Command {
-	type Options struct {
-		OptProject   string
-		OptKind      string
-		OptNamespace string
-		OptKeyFile   string
-		OptFilter    string
-		OptCount     bool
-		OptTable     bool
-	}
-
-	var (
-		o = &Options{}
-	)
-
 	cmd := &cobra.Command{
-		Use:   "select",
-		Short: "Select Entity",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.Background()
-
-			client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
-			if err != nil {
-				return err
-			}
-
-			query := datastore.NewQuery(o.OptKind)
-			if o.OptNamespace != "" {
-				query = query.Namespace(o.OptNamespace)
-			}
-			if o.OptFilter != "" {
-				filter := strings.SplitN(o.OptFilter, "=", 2)
-				if len(filter) == 2 {
-					if filter[0] == "__key__" {
-						key := datastore.Key{
-							Kind: o.OptKind,
-							Name: filter[1],
-						}
-						if o.OptNamespace != "" {
-							key.Namespace = o.OptNamespace
-						}
-						query = query.Filter(fmt.Sprintf("%s =", filter[0]), &key)
-					} else {
-						query = query.Filter(fmt.Sprintf("%s =", filter[0]), filter[1])
-					}
-				} else {
-					return fmt.Errorf("error: invalid filter parameter: %s", o.OptFilter)
-				}
-			}
-			if o.OptCount {
-				query = query.KeysOnly()
-			}
-
-			var entities []Entity
-
-			keys, err := client.GetAll(ctx, query, &entities)
-			if err != nil {
-				return err
-			}
-
-			if !o.OptCount {
-				if o.OptTable {
-					outputTable(cmd.OutOrStdout(), keys, entities)
-				} else {
-					outputJson(cmd.OutOrStdout(), keys, entities)
-				}
-			}
-			cmd.Printf("count: %d \n", len(keys))
-
-			return nil
-		},
+		Use:           "select",
+		Short:         "Select Entity",
+		RunE:          selectFunction,
 		SilenceErrors: true,
 		SilenceUsage:  false,
 	}
@@ -102,6 +35,37 @@ func newSelectCmd() *cobra.Command {
 
 func init() {
 	RootCmd.AddCommand(newSelectCmd())
+}
+
+func selectFunction(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+
+	client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
+	if err != nil {
+		return err
+	}
+
+	query, err := client.GetQuery(o.OptKind, o.OptNamespace, o.OptFilter, o.OptCount)
+	if err != nil {
+		return err
+	}
+
+	var entities []Entity
+	keys, err := client.GetAll(ctx, query, &entities)
+	if err != nil {
+		return err
+	}
+
+	if !o.OptCount {
+		if o.OptTable {
+			outputTable(cmd.OutOrStdout(), keys, entities)
+		} else {
+			outputJson(cmd.OutOrStdout(), keys, entities)
+		}
+	}
+	cmd.Printf("count: %d \n", len(keys))
+
+	return nil
 }
 
 func outputTable(w io.Writer, keys []*datastore.Key, entities []Entity) {

@@ -5,6 +5,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Options struct {
+	OptProject   string
+	OptKind      string
+	OptNamespace string
+	OptKeyFile   string
+	OptFilter    string
+	OptCount     bool
+	OptTable     bool
+}
+
+var (
+	o = &Options{}
+)
+
 var cfgFile string
 
 var RootCmd = &cobra.Command{

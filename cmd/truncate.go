@@ -7,54 +7,10 @@ import (
 )
 
 func newTruncateCmd() *cobra.Command {
-	type Options struct {
-		OptProject   string
-		OptKind      string
-		OptKeyFile   string
-		OptNamespace string
-	}
-
-	var (
-		o = &Options{}
-	)
-
 	cmd := &cobra.Command{
-		Use:   "truncate",
-		Short: "Truncate Entity",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.Background()
-
-			client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
-			if err != nil {
-				return err
-			}
-
-			query := datastore.NewQuery(o.OptKind).KeysOnly()
-			if o.OptNamespace != "" {
-				query = query.Namespace(o.OptNamespace)
-			}
-
-			var entities []Entity
-
-			keys, err := client.GetAll(ctx, query, &entities)
-			if err != nil {
-				return err
-			}
-
-			count := len(keys)
-
-			tKeys, keys := slice(keys, 0, 500)
-			for len(tKeys) > 0 {
-				if err := client.DeleteMulti(ctx, tKeys); err != nil {
-					return err
-				}
-
-				tKeys, keys = slice(keys, 0, 500)
-			}
-			cmd.Printf("truncate finish, count = %d \n", count)
-
-			return nil
-		},
+		Use:           "truncate",
+		Short:         "Truncate Entity",
+		RunE:          truncateFunction,
 		SilenceErrors: true,
 		SilenceUsage:  false,
 	}
@@ -71,6 +27,40 @@ func newTruncateCmd() *cobra.Command {
 
 func init() {
 	RootCmd.AddCommand(newTruncateCmd())
+}
+
+func truncateFunction(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+
+	client, err := NewDatastoreClient(ctx, o.OptKeyFile, o.OptProject)
+	if err != nil {
+		return err
+	}
+
+	query, err := client.GetQuery(o.OptKind, o.OptNamespace, "", true)
+	if err != nil {
+		return err
+	}
+
+	var entities []Entity
+	keys, err := client.GetAll(ctx, query, &entities)
+	if err != nil {
+		return err
+	}
+
+	count := len(keys)
+
+	tKeys, keys := slice(keys, 0, 500)
+	for len(tKeys) > 0 {
+		if err := client.Client.DeleteMulti(ctx, tKeys); err != nil {
+			return err
+		}
+
+		tKeys, keys = slice(keys, 0, 500)
+	}
+	cmd.Printf("truncate finish, count = %d \n", count)
+
+	return nil
 }
 
 func slice(slice []*datastore.Key, start, end int) ([]*datastore.Key, []*datastore.Key) {
