@@ -52,3 +52,11 @@ Flags:
   -w, --filter string      filter query (Property=Value)
   -s, --set string         set update value (Property=Value)
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## Inspiration
+
+https://github.com/boiyaa/datastore-tools
