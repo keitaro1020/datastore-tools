@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"context"
-	"strings"
 	"fmt"
+	"github.com/spf13/cobra"
+	"strings"
 )
 
 func newUpdateCmd() *cobra.Command {

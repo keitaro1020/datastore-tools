@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/api/option"
-	"strings"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type Entity struct {
@@ -74,8 +74,8 @@ func (e *Entity) SetValue(name, value string) error {
 			}
 
 			e.Properties[i] = datastore.Property{
-				Name: prop.Name,
-				Value: setVal,
+				Name:    prop.Name,
+				Value:   setVal,
 				NoIndex: prop.NoIndex,
 			}
 			res = true
