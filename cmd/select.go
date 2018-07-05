@@ -62,8 +62,9 @@ func selectFunction(cmd *cobra.Command, args []string) error {
 		} else {
 			outputJson(cmd.OutOrStdout(), keys, entities)
 		}
+	}else{
+		cmd.Printf("count: %d \n", len(keys))
 	}
-	cmd.Printf("count: %d \n", len(keys))
 
 	return nil
 }
@@ -104,6 +105,7 @@ func outputTable(w io.Writer, keys []*datastore.Key, entities []Entity) {
 }
 
 func outputJson(w io.Writer, keys []*datastore.Key, entities []Entity) {
+	fmt.Fprintf(w, "%s\n", "[")
 	for i, key := range keys {
 		entity := entities[i]
 		entity.Props["__key__"] = NewJsonKey(key)
@@ -124,4 +126,5 @@ func outputJson(w io.Writer, keys []*datastore.Key, entities []Entity) {
 		}
 		fmt.Fprintf(w, "%s\n", js)
 	}
+	fmt.Fprintf(w, "%s\n", "]")
 }

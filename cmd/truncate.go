@@ -19,6 +19,7 @@ func newTruncateCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&o.OptKind, "kind", "k", "", "datastore kind [required]")
 	cmd.Flags().StringVarP(&o.OptNamespace, "namespace", "n", "", "datastore namespace")
 	cmd.Flags().StringVarP(&o.OptKeyFile, "key-file", "f", "", "gcp service account JSON key file")
+	cmd.Flags().StringVarP(&o.OptFilter, "filter", "w", "", "filter query (Property=Value)")
 
 	cmd.MarkFlagRequired("project")
 	cmd.MarkFlagRequired("kind")
@@ -38,7 +39,7 @@ func truncateFunction(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	query, err := client.GetQuery(o.OptKind, o.OptNamespace, "", true)
+	query, err := client.GetQuery(o.OptKind, o.OptNamespace, o.OptFilter, true)
 	if err != nil {
 		return err
 	}
