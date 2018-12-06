@@ -62,7 +62,7 @@ func selectFunction(cmd *cobra.Command, args []string) error {
 		} else {
 			outputJson(cmd.OutOrStdout(), keys, entities)
 		}
-	}else{
+	} else {
 		cmd.Printf("count: %d \n", len(keys))
 	}
 

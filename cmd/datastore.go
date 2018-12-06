@@ -88,11 +88,18 @@ func (e *Entity) SetValue(name, value string) error {
 	}
 }
 
-type DatastoreClient struct {
+type DatastoreClient interface {
+	GetQuery(kind, namespace, filter string, keysOnly bool) (*datastore.Query, error)
+	GetAll(ctx context.Context, query *datastore.Query, entities *[]Entity) ([]*datastore.Key, error)
+	PutMulti(ctx context.Context, keys []*datastore.Key, entities []Entity) ([]*datastore.Key, error)
+	DeleteMulti(ctx context.Context, keys []*datastore.Key) error
+}
+
+type DatastoreClientImpl struct {
 	Client *datastore.Client
 }
 
-func NewDatastoreClient(c context.Context, keyfile, project string) (*DatastoreClient, error) {
+func NewDatastoreClient(c context.Context, keyfile, project string) (DatastoreClient, error) {
 	var opts []option.ClientOption
 	if keyfile != "" {
 		opts = []option.ClientOption{
@@ -104,12 +111,13 @@ func NewDatastoreClient(c context.Context, keyfile, project string) (*DatastoreC
 		return nil, err
 	}
 
-	return &DatastoreClient{
+	var cli DatastoreClient = &DatastoreClientImpl{
 		Client: client,
-	}, nil
+	}
+	return cli, nil
 }
 
-func (c *DatastoreClient) GetQuery(kind, namespace, filter string, keysOnly bool) (*datastore.Query, error) {
+func (c *DatastoreClientImpl) GetQuery(kind, namespace, filter string, keysOnly bool) (*datastore.Query, error) {
 	query := datastore.NewQuery(kind)
 	if namespace != "" {
 		query = query.Namespace(namespace)
@@ -139,10 +147,14 @@ func (c *DatastoreClient) GetQuery(kind, namespace, filter string, keysOnly bool
 	return query, nil
 }
 
-func (c *DatastoreClient) GetAll(ctx context.Context, query *datastore.Query, entities *[]Entity) ([]*datastore.Key, error) {
+func (c *DatastoreClientImpl) GetAll(ctx context.Context, query *datastore.Query, entities *[]Entity) ([]*datastore.Key, error) {
 	return c.Client.GetAll(ctx, query, entities)
 }
 
-func (c *DatastoreClient) PutMulti(ctx context.Context, keys []*datastore.Key, entities []Entity) ([]*datastore.Key, error) {
+func (c *DatastoreClientImpl) PutMulti(ctx context.Context, keys []*datastore.Key, entities []Entity) ([]*datastore.Key, error) {
 	return c.Client.PutMulti(ctx, keys, entities)
+}
+
+func (c *DatastoreClientImpl) DeleteMulti(ctx context.Context, keys []*datastore.Key) error {
+	return c.Client.DeleteMulti(ctx, keys)
 }

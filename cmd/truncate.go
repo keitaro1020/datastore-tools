@@ -57,7 +57,7 @@ func truncateFunction(cmd *cobra.Command, args []string) error {
 		wg.Add(1)
 		go func(keys []*datastore.Key) {
 			defer wg.Done()
-			if err := client.Client.DeleteMulti(ctx, keys); err != nil {
+			if err := client.DeleteMulti(ctx, keys); err != nil {
 				cmd.Printf("delete error: %+v", err)
 			}
 		}(ks)
