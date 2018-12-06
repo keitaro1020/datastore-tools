@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
-	"github.com/spf13/cobra"
 	"sync"
+
+	"cloud.google.com/go/datastore"
+	"github.com/spf13/cobra"
 )
 
 func newTruncateCmd() *cobra.Command {

@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"bytes"
-	"cloud.google.com/go/datastore"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+
+	"cloud.google.com/go/datastore"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"io"
 )
 
 func newSelectCmd() *cobra.Command {

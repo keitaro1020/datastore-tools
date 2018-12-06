@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
 	"fmt"
-	"google.golang.org/api/option"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"cloud.google.com/go/datastore"
+	"google.golang.org/api/option"
 )
 
 type Entity struct {

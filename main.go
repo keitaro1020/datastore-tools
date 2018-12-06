@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/keitaro1020/datastore-tools/cmd"
 	"os"
+
+	"github.com/keitaro1020/datastore-tools/cmd"
 )
 
 func main() {
