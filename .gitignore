@@ -2,6 +2,7 @@
 bin/*
 out/*
 pkg/*
+build/*
 
 /.idea/
 /*.json
