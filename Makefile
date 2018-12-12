@@ -1,68 +1,82 @@
-NAME := datastore-tools
-VERSION := 0.1.1
-REVISION := $(shell git rev-parse --short HEAD)
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GOTEST=$(GOCMD) test
+GOGET=$(GOCMD) get
+NAME := dt
+CURRENT := $(shell pwd)
+BUILDDIR=./build
+BINDIR=$(BUILDDIR)/bin
+PKGDIR=$(BUILDDIR)/pkg
+DISTDIR=$(BUILDDIR)/dist
 
-SRCS     := $(shell find . -type f -name '*.go')
-LDFLAGS  := -ldflags="-s -w -X \"github.com/keitaro1020/datastore-tools/version.Version=$(VERSION)\" -X \"github.com/keitaro1020/datastore-tools/version.Revision=$(REVISION)\" -extldflags -static"
-NOVENDOR := $(shell go list ./... | grep -v vendor)
+VERSION := $(shell git describe --tags --abbrev=0)
+LDFLAGS := -X 'main.version=$(VERSION)'
+GOXOS := "darwin windows linux"
+GOXARCH := "386 amd64"
+GOXOUTPUT := "$(PKGDIR)/$(NAME)_{{.OS}}_{{.Arch}}/{{.Dir}}"
 
-DIST_DIRS := find * -type d -exec
+.PHONY: build
+## Build binaries
+build: deps
+	go build -ldflags "$(LDFLAGS)" -o $(BINDIR)/$(NAME)
 
-.DEFAULT_GOAL := bin/$(NAME)
-
-bin/$(NAME): $(SRCS)
-	go build $(LDFLAGS) -o bin/$(NAME)
-
-.PHONY: ci-test
-ci-test:
-	go test -coverpkg=./... -coverprofile=coverage.txt -v ./...
-
-.PHONY: clean
-clean:
-	rm -rf bin/*
-	rm -rf vendor/*
-
-.PHONY: cross-build
-cross-build: deps
-	set -e; \
-	for os in darwin linux windows; do \
-		for arch in amd64 386; do \
-			GOOS=$$os GOARCH=$$arch go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-$$arch/$(NAME); \
-		done; \
-	done
+.PHONY: install
+install:
+	go install -ldflags "$(LDFLAGS)"
 
 .PHONY: dep
 dep:
 ifeq ($(shell command -v dep 2> /dev/null),)
-	go get -u github.com/golang/dep/cmd/dep
+    go get -u github.com/golang/dep/cmd/dep
 endif
 
 .PHONY: deps
 deps: dep
 	dep ensure -v
 
-.PHONY: dist
-dist:
-	cd dist && \
-	$(DIST_DIRS) cp ../LICENSE {} \; && \
-	$(DIST_DIRS) cp ../README.md {} \; && \
-	$(DIST_DIRS) tar -zcf $(NAME)-$(VERSION)-{}.tar.gz {} \; && \
-	$(DIST_DIRS) zip -r $(NAME)-$(VERSION)-{}.zip {} \; && \
-	cd ..
+.PHONY: cross-build
+## Cross build binaries
+cross-build:
+	rm -rf $(PKGDIR)
+	gox -os=$(GOXOS) -arch=$(GOXARCH) -output=$(GOXOUTPUT)
 
-.PHONY: install
-install:
-	go install $(LDFLAGS)
+.PHONY: package
+## Make package
+package: cross-build
+	rm -rf $(DISTDIR)
+	mkdir $(DISTDIR)
+	pushd $(PKGDIR) > /dev/null && \
+		for P in `ls | xargs basename`; do zip -r $(CURRENT)/$(DISTDIR)/$$P.zip $$P; done && \
+		popd > /dev/null
 
 .PHONY: release
-release:
-	git tag $(VERSION)
-	git push origin $(VERSION)
+## Release package to Github
+release: package
+	ghr $(VERSION) $(DISTDIR)
 
 .PHONY: test
-test:
-	go test -coverpkg=./... -v $(NOVENDOR)
+## Run tests
+test: deps
+	$(GOTEST) -v ./...
 
-.PHONY: update-deps
-update-deps: dep
-	dep ensure -update -v
+.PHONY: lint
+## Lint
+lint: deps
+	go vet ./...
+	golint ./...
+
+.PHONY: fmt
+## Format source codes
+fmt: deps
+	find . -name "*.go" -not -path "./vendor/*" | xargs goimports -w
+
+.PHONY: clean
+clean:
+	$(GOCLEAN)
+	rm -rf $(BUILDDIR)
+
+.PHONY: help
+## Show help
+help:
+	@make2help $(MAKEFILE_LIST)
