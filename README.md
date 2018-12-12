@@ -14,6 +14,7 @@ cd $GOPATH/src/github.com/keitaro1020/datastore-tools
 make
 make install
 ```
+Or download binaries from the [releases](https://github.com/keitaro1020/datastore-tools/releases) page(Linux/Windows/macOS).
 
 ## Using the tools
 
