@@ -1,65 +1,51 @@
-NAME            := datastore-tools
-VERSION         := v0.0.1
-REVISION        := $(shell git rev-parse --short HEAD)
-LDFLAGS         := "-X github.com/keitaro1020/datastore-tools/cmd.Version=${VERSION} -X github.com/keitaro1020/datastore-tools/cmd.Revision=${REVISION}"
-OSARCH          := "darwin/amd64 linux/amd64"
-GITHUB_USER     := keitaro1020
+GOCMD=go
+GOGET=$(GOCMD) get
+GOCLEAN=$(GOCMD) clean
+GOBUILD=$(GOCMD) build
+GOTEST=$(GOCMD) test
+GOINSTALL=$(GOCMD) install
+DEP=dep
 
-ifndef GOBIN
-GOBIN := $(shell echo "$${GOPATH%%:*}/bin")
-endif
+GOXCMD=gox -cgo
 
-LINT := $(GOBIN)/golint
-GOX := $(GOBIN)/gox
-ARCHIVER := $(GOBIN)/archiver
-GHR := $(GOBIN)/ghr
+TARGET="dist/datastore-tools_{{.OS}}_{{.Arch}}/{{.Dir}}"
 
-$(LINT): ; @go get github.com/golang/lint/golint
-$(GOX): ; @go get github.com/mitchellh/gox
-$(ARCHIVER): ; @go get github.com/mholt/archiver/cmd/archiver
-$(GHR): ; @go get github.com/tcnksm/ghr
+BINARY_NAME := datastore-tools
+SRCS := $(shell git ls-files '*.go')
 
-.DEFAULT_GOAL := build
+all: dep test build
 
-.PHONY: deps
-deps:
-	go get -d -v .
+dep:
+	$(GOGET) github.com/golang/dep/cmd/dep
+	$(GOGET) github.com/mitchellh/gox
+	$(DEP) ensure
 
-.PHONY: build
-build: deps
-	go build -ldflags $(LDFLAGS) -o bin/$(NAME)
+test: $(SRCS)
+	$(GOTEST)
 
-.PHONY: install
-install: deps
-	go install -ldflags $(LDFLAGS)
+build: datastore-tools
 
-.PHONY: cross-build
-cross-build: deps $(GOX)
-	rm -rf ./out && \
-	gox -ldflags $(LDFLAGS) -osarch $(OSARCH) -output "./out/${NAME}_${VERSION}_{{.OS}}_{{.Arch}}/{{.Dir}}"
+$(BINARY_NAME): $(SRCS)
+	$(GOBUILD) -o $(BINARY_NAME)
 
-.PHONY: package
-package: cross-build $(ARCHIVER)
-	rm -rf ./pkg && mkdir ./pkg && \
-	pushd out && \
-	find * -type d -exec archiver make ../pkg/{}.tar.gz {}/$(NAME) \; && \
-	popd
+pkg: linux_pkg window_pkg
 
-.PHONY: release
-release: $(GHR)
-	ghr -u $(GITHUB_USER) $(VERSION) pkg/
+linux_pkg:
+	$(GOXCMD) -os "linux" -arch "386 amd64" -output $(TARGET)
 
-.PHONY: lint
-lint: $(LINT)
-	@golint ./...
+window_pkg:
+	CC=x86_64-w64-mingw32-gcc $(GOXCMD) -os "windows" -arch "amd64" -output $(TARGET)
+	CC=i686-w64-mingw32-gcc $(GOXCMD) -os "windows" -arch "386" -output $(TARGET)
 
-.PHONY: vet
-vet:
-	@go vet ./...
+pkg_macOS:
+	$(GOXCMD) -os "darwin" -arch "386 amd64" -output ${TARGET}
 
-.PHONY: test
-test:
-	@go test ./...
+install:
+	$(GOINSTALL)
 
-.PHONY: check
-check: lint vet test build
+clean:
+	$(GOCLEAN)
+	rm -f $(BINARY_NAME)
+	rm -rf dist
+
+.PHONY: all dep test build pkg install clean
