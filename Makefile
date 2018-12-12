@@ -3,10 +3,10 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
-NAME := dt
+NAME := datastore-tools
 CURRENT := $(shell pwd)
 BUILDDIR=./build
-BINDIR=$(BUILDDIR)/bin
+BINDIR=./bin
 PKGDIR=$(BUILDDIR)/pkg
 DISTDIR=$(BUILDDIR)/dist
 
@@ -49,17 +49,6 @@ package: cross-build
 	pushd $(PKGDIR) > /dev/null && \
 		for P in `ls | xargs basename`; do zip -r $(CURRENT)/$(DISTDIR)/$$P.zip $$P; done && \
 		popd > /dev/null
-
-.PHONY: ghr
-ghr:
-ifeq ($(shell command -v ghr 2> /dev/null),)
-	go get -u github.com/tcnksm/ghr
-endif
-
-.PHONY: release
-## Release package to Github
-release: package ghr
-	ghr $(VERSION) $(DISTDIR)
 
 .PHONY: test
 ## Run tests
