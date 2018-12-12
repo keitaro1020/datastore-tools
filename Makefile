@@ -1,51 +1,74 @@
-GOCMD=go
-GOGET=$(GOCMD) get
-GOCLEAN=$(GOCMD) clean
-GOBUILD=$(GOCMD) build
-GOTEST=$(GOCMD) test
-GOINSTALL=$(GOCMD) install
-DEP=dep
+NAME := datastore-tools
+VERSION := 0.1.1
+REVISION := $(shell git rev-parse --short HEAD)
 
-GOXCMD=gox -cgo
+SRCS     := $(shell find . -type f -name '*.go')
+LDFLAGS  := -ldflags="-s -w -X \"github.com/keitaro1020/datastore-tools/version.Version=$(VERSION)\" -X \"github.com/keitaro1020/datastore-tools/version.Revision=$(REVISION)\" -extldflags -static"
+NOVENDOR := $(shell go list ./... | grep -v vendor)
 
-TARGET="dist/datastore-tools_{{.OS}}_{{.Arch}}/{{.Dir}}"
+DIST_DIRS := find * -type d -exec
 
-BINARY_NAME := datastore-tools
-SRCS := $(shell git ls-files '*.go')
+.DEFAULT_GOAL := bin/$(NAME)
 
-all: dep test build
+bin/$(NAME): $(SRCS)
+	go build $(LDFLAGS) -o bin/$(NAME)
 
-dep:
-	$(GOGET) github.com/golang/dep/cmd/dep
-	$(GOGET) github.com/mitchellh/gox
-	$(DEP) ensure
+.PHONY: ci-test
+ci-test:
+	go test -coverpkg=./... -coverprofile=coverage.txt -v ./...
 
-test: $(SRCS)
-	$(GOTEST)
-
-build: datastore-tools
-
-$(BINARY_NAME): $(SRCS)
-	$(GOBUILD) -o $(BINARY_NAME)
-
-pkg: linux_pkg window_pkg
-
-linux_pkg:
-	$(GOXCMD) -os "linux" -arch "386 amd64" -output $(TARGET)
-
-window_pkg:
-	CC=x86_64-w64-mingw32-gcc $(GOXCMD) -os "windows" -arch "amd64" -output $(TARGET)
-	CC=i686-w64-mingw32-gcc $(GOXCMD) -os "windows" -arch "386" -output $(TARGET)
-
-pkg_macOS:
-	$(GOXCMD) -os "darwin" -arch "386 amd64" -output ${TARGET}
-
-install:
-	$(GOINSTALL)
-
+.PHONY: clean
 clean:
-	$(GOCLEAN)
-	rm -f $(BINARY_NAME)
-	rm -rf dist
+	rm -rf bin/*
+	rm -rf vendor/*
 
-.PHONY: all dep test build pkg install clean
+.PHONY: cross-build
+cross-build: deps
+	set -e; \
+	for os in darwin linux windows; do \
+		for arch in amd64 386; do \
+			GOOS=$$os GOARCH=$$arch go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-$$arch/$(NAME); \
+		done; \
+	done
+
+.PHONY: dep
+dep:
+ifeq ($(shell command -v dep 2> /dev/null),)
+	go get -u github.com/golang/dep/cmd/dep
+endif
+
+.PHONY: deps
+deps: dep
+	dep ensure -v
+
+.PHONY: dist
+dist:
+	cd dist && \
+	$(DIST_DIRS) cp ../LICENSE {} \; && \
+	$(DIST_DIRS) cp ../README.md {} \; && \
+	$(DIST_DIRS) tar -zcf $(NAME)-$(VERSION)-{}.tar.gz {} \; && \
+	$(DIST_DIRS) zip -r $(NAME)-$(VERSION)-{}.zip {} \; && \
+	cd ..
+
+.PHONY: install
+install:
+	go install $(LDFLAGS)
+
+.PHONY: mockgen
+mockgen:
+	go get -v github.com/golang/mock/gomock
+	go get -v github.com/golang/mock/mockgen
+	mockgen -source vendor/github.com/aws/aws-sdk-go/service/s3/s3iface/interface.go -destination aws/mock/s3.go -package mock
+
+.PHONY: release
+release:
+	git tag $(VERSION)
+	git push origin $(VERSION)
+
+.PHONY: test
+test:
+	go test -coverpkg=./... -v $(NOVENDOR)
+
+.PHONY: update-deps
+update-deps: dep
+	dep ensure -update -v
