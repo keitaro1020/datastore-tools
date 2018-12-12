@@ -8,7 +8,12 @@ CLI for Google Cloud Datastore
 
 ## Installing the tools
 
-`go get github.com/keitaro1020/datastore-tools`
+```
+go get github.com/keitaro1020/datastore-tools
+cd $GOPATH/src/github.com/keitaro1020/datastore-tools
+make
+make install
+```
 
 ## Using the tools
 
